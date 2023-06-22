@@ -61,25 +61,31 @@ var link = {
 
 var strawberry = {
     // for this version, the monster does not move, so just and x and y
-    x: getRandomInt(canvasHeight - 10),
-    y: getRandomInt(canvasHeight - 10)
+    x: getRandomInt(canvasHeight - 5),
+    y: getRandomInt(canvasHeight - 5)
 };
 
 var snake = {
-    x: getRandomInt(canvasHeight - 10),
-    y: getRandomInt(canvasHeight - 10),
-    width: 50,
-    height: 50
+    x: getRandomInt(canvasHeight - 5),
+    y: getRandomInt(canvasHeight - 5),
+    width: 80,
+    height: 80
 }
+
+// get sound
+const collisionSoundFresa = document.getElementById("collisionSoundFresa");
+const collisionSoundDead = document.getElementById("collisionSoundDead");
+
 
 var numberOfStrawberry = 0;
 
 // Define the speed of the animation (in milliseconds)
-const animationSpeed = 100;
+const animationSpeed = 10000;
 // keyboard events
 // Define the number of frames and the current frame index
 const totalFrames = 10;
 let currentFrame = 1;
+var then = Date.now();
 
 addEventListener("keydown", (event) => {
     if (event.defaultPrevented)
@@ -90,61 +96,77 @@ addEventListener("keydown", (event) => {
     switch (event.code) {
         case "KeyS":
         case "ArrowDown":
-          // Handle "down"
-          link.currentFrameIndex = link.downkeyY;
-          link.y += link.speed;
-          if (link.y + spriteHeight > canvas.height)
-          {
-            link.y = 0;
-          }
-          link.currentFrame = (link.currentFrame + 1) % totalFrames;
-          break;
+            // Handle "down"
+            link.currentFrameIndex = link.downkeyY;
+            link.y += link.speed;
+            if (link.y + spriteHeight > canvas.height)
+            {
+                link.y = 0;
+            }
+            link.currentFrame = (link.currentFrame + 1) % totalFrames;
+            break;
         case "KeyW":
         case "ArrowUp":
-          // Handle "up"
-          link.currentFrameIndex = link.upKeyY;
-          link.y -= link.speed;
-          if (link.y < 0)
-          {
-            link.y = canvas.height;
-          }
-          link.currentFrame = (link.currentFrame + 1) % totalFrames;
-          break;
+            // Handle "up"
+            link.currentFrameIndex = link.upKeyY;
+            link.y -= link.speed;
+            if (link.y < 0)
+            {
+                link.y = canvas.height;
+            }
+            link.currentFrame = (link.currentFrame + 1) % totalFrames;
+            break;
         case "KeyA":
         case "ArrowLeft":
-          // Handle "left"
-          link.currentFrameIndex = link.leftKeyY;
-          link.x -= link.speed;
-          if (link.x < 0)
-          {
-            link.x = canvas.width;
-          }
-          link.currentFrame = (link.currentFrame + 1) % totalFrames;
-          break;
+            // Handle "left"
+            link.currentFrameIndex = link.leftKeyY;
+            link.x -= link.speed;
+            if (link.x < 0)
+            {
+                link.x = canvas.width;
+            }
+            link.currentFrame = (link.currentFrame + 1) % totalFrames;
+            break;
         case "KeyD":
         case "ArrowRight":
-          // Handle "right"
-          link.currentFrameIndex = link.rightKeyY;
-          link.x += link.speed;
-          if (link.x + spriteWidth > canvas.width)
-          {
-            link.x = 0;
-          }
-          link.currentFrame = (link.currentFrame + 1) % totalFrames;
-          break;
+            // Handle "right"
+            link.currentFrameIndex = link.rightKeyY;
+            link.x += link.speed;
+            if (link.x + spriteWidth > canvas.width)
+            {
+                link.x = 0;
+            }
+            link.currentFrame = (link.currentFrame + 1) % totalFrames;
+            break;
+        case " ":
+        case "Enter":
+            console.log("Entered");
+            then = Date.now();
+            main();  
+            break;
     }
 
-    var right = link.x + spriteWidth;
-    var down = link.y + spriteHeight;
-    console.log("right: " + right + "fresa x: " + strawberry.x + "down: " + down + "fresa y:" + strawberry.y)
+    if (
+        (link.x + spriteWidth) >= (snake.x + 20)
+        && (link.y + spriteHeight) >= (snake.y + 20)
+        && link.x <= (snake.x + 20) && link.y <= (snake.y + 20)
+    ) {
+        console.log("collision detected");
+        collisionSoundDead.play();
+        reset();
+        endGame();
+    }
+
     if (
         (link.x + spriteWidth) >= (strawberry.x)
         && (link.y + spriteHeight) >= (strawberry.y)
-        && link.x <= strawberry.x && link.y <= strawberry.y
+        && link.x <= (strawberry.x + 20) && link.y <= (strawberry.y + 20)
     ) {
         ++numberOfStrawberry;       // keep number of strawberries
+        collisionSoundFresa.play();
         renderStrawberry();       // start a new cycle
     }
+
     updateLinkPosition();
 });
 
@@ -165,43 +187,26 @@ function renderStrawberry()
     ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
 }
 
-function renderSnake()
+function renderSnake(timestamp, forceUpdate)
 {
-    snake.x = getRandomInt(canvasHeight - 10);
-    snake.y = getRandomInt(canvasHeight - 10);
-    console.log('rendering snake...');
-    ctx.drawImage(fresaSpriteSheet, snake.x, snake.y);
+    const deltaTime = timestamp - then;
+    if (deltaTime > animationSpeed || forceUpdate)
+    {
+        snake.x = getRandomInt(canvasHeight - 10);
+        snake.y = getRandomInt(canvasHeight - 10);
+        console.log('rendering snake...');
+        ctx.drawImage(snakeSpriteSheet, snake.x, snake.y, snake.width, snake.height);
+
+        then = timestamp;
+    }
 }
 
-// var snakeFrame = 1;
-// let spriteX = 0;
-// const speed = 5;
-// const direction = 1;
-// function updateSnakePosition() {
-//   // Clear the canvas
-
-//   // Calculate the position of the current frame on the sprite sheet
-//   const frameX = snakeFrame * snake.x;
-//   const frameY = snake.y;
-
-//   // Update the sprite's position based on speed and direction
-//   spriteX += speed * direction;
-
-//   // Draw the current frame onto the canvas at the updated position
-//   ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
-
-//   // Increment the frame index
-//   currentFrame = (currentFrame + 1) % totalFrames;
-
-//   // Call the updateFrame function recursively to animate the sprite
-// //   requestAnimationFrame(updateSnakePosition);
-// }
-
 var main = function () {  
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     var now = Date.now();
     render();
-   // updateSnakePosition();
-    then = now;
+
+    renderSnake(now);
     requestAnimationFrame(main);
 
     // Score
@@ -227,8 +232,7 @@ var render = function () {
 
     if (snakeRedy)
     {
-        console.log("snake");
-        // ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
+        ctx.drawImage(snakeSpriteSheet, snake.x, snake.y, snake.width, snake.height);
     }
 }
 
@@ -236,6 +240,47 @@ function getRandomInt(max) {
     return Math.floor(Math.random() * max);
 }
 
-var then = Date.now();
-//reset();
-main();  // call the main game loop.
+var reset = function () {
+    renderSnake(Date.now, true);
+    render();
+    numberOfStrawberry = 0;
+    reset();
+}
+
+var endGame = function() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bckgrdImage, 0, 0);
+    ctx.font = "bold 48px Arial";
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+  
+    // Calculate the position to center the text on the canvas
+    const textX = canvas.width / 2;
+    const textY = canvas.height / 2;
+  
+    // Render the "Game Over" text on the canvas
+    ctx.fillText("Game Over", textX, textY);
+    ctx.fillText("Press Enter to Restart", textX, textY +  90);
+    requestAnimationFrame(endGame);
+}
+
+// call the main game loop.
+var titleScreen = function() {
+    ctx.drawImage(bckgrdImage, 0, 0);
+
+    ctx.font = "bold 48px Arial";
+    ctx.fillStyle = "red";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    const textX = canvas.width / 2;
+    const textY = canvas.height / 2;
+  
+    // Render the "Game Over" text on the canvas
+    ctx.fillText("Press Enter to Start", textX, textY);
+    requestAnimationFrame(titleScreen);
+}
+
+
+titleScreen();
