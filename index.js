@@ -1,8 +1,10 @@
 // create a new canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 1000;
-canvas.height = 1000;
+canvasWidth = 800;
+canvasHeight = 800;
+canvas.width = canvasWidth;
+canvas.height = canvasHeight;
 document.body.appendChild(canvas);
 
 // render background image
@@ -29,10 +31,19 @@ fresaSpriteSheet.onload = function () {
 };
 fresaSpriteSheet.src = "images/fresa.png";
 
+// render snake
+var snakeRedy = false;
+var snakeSpriteSheet = new Image();
+snakeSpriteSheet.onload = function () {
+    snakeRedy = true;
+};
+snakeSpriteSheet.src = "images/snake.gif";
+
 // initialization
 const spriteWidth = 96; // sprite width
 const spriteHeight = 100; // sprite height
 
+// game objects
 var link = {
     speed: 30,
     x: 100, // sprite on the canvas
@@ -50,9 +61,17 @@ var link = {
 
 var strawberry = {
     // for this version, the monster does not move, so just and x and y
-    x: getRandomInt(1000),
-    y: getRandomInt(1000)
+    x: getRandomInt(canvasHeight - 10),
+    y: getRandomInt(canvasHeight - 10)
 };
+
+var snake = {
+    x: getRandomInt(canvasHeight - 10),
+    y: getRandomInt(canvasHeight - 10),
+    width: 50,
+    height: 50
+}
+
 
 var numberOfStrawberry = 0;
 
@@ -104,8 +123,8 @@ addEventListener("keydown", (event) => {
     var down = link.y + spriteHeight;
     console.log("right: " + right + "fresa x: " + strawberry.x + "down: " + down + "fresa y:" + strawberry.y)
     if (
-        (link.x >= (strawberry.x)
-        && (link.y >= (strawberry.y)
+        (link.x + spriteWidth) >= (strawberry.x)
+        && (link.y + spriteHeight) >= (strawberry.y)
         && link.x <= strawberry.x && link.y <= strawberry.y
     ) {
         ++numberOfStrawberry;       // keep number of strawberries
@@ -125,10 +144,33 @@ function updateLinkPosition() {
 
 function renderStrawberry()
 {
-    strawberry.x = getRandomInt(1000);
-    strawberry.y = getRandomInt(1000);
+    strawberry.x = getRandomInt(canvasHeight - 10);
+    strawberry.y = getRandomInt(canvasHeight - 10);
     console.log('rendering strawberry...');
     ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
+}
+
+var snakeFrame = 1;
+let spriteX = 0;
+function updateSnakePosition() {
+  // Clear the canvas
+//   ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  // Calculate the position of the current frame on the sprite sheet
+  const frameX = snakeFrame * snake.x;
+  const frameY = 0;
+
+  // Update the sprite's position based on speed and direction
+  spriteX += speed * direction;
+
+  // Draw the current frame onto the canvas at the updated position
+  ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
+
+  // Increment the frame index
+  currentFrame = (currentFrame + 1) % totalFrames;
+
+  // Call the updateFrame function recursively to animate the sprite
+  requestAnimationFrame(updateSnakePosition);
 }
 
 var main = function () {  
@@ -156,6 +198,11 @@ var render = function () {
     if (fresaRedy)
     {
         ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
+    }
+
+    if (snakeRedy)
+    {
+        updateSnakePosition();
     }
 }
 
