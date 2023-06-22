@@ -72,7 +72,6 @@ var snake = {
     height: 50
 }
 
-
 var numberOfStrawberry = 0;
 
 // Define the speed of the animation (in milliseconds)
@@ -94,6 +93,10 @@ addEventListener("keydown", (event) => {
           // Handle "down"
           link.currentFrameIndex = link.downkeyY;
           link.y += link.speed;
+          if (link.y + spriteHeight > canvas.height)
+          {
+            link.y = 0;
+          }
           link.currentFrame = (link.currentFrame + 1) % totalFrames;
           break;
         case "KeyW":
@@ -101,6 +104,10 @@ addEventListener("keydown", (event) => {
           // Handle "up"
           link.currentFrameIndex = link.upKeyY;
           link.y -= link.speed;
+          if (link.y < 0)
+          {
+            link.y = canvas.height;
+          }
           link.currentFrame = (link.currentFrame + 1) % totalFrames;
           break;
         case "KeyA":
@@ -108,6 +115,10 @@ addEventListener("keydown", (event) => {
           // Handle "left"
           link.currentFrameIndex = link.leftKeyY;
           link.x -= link.speed;
+          if (link.x < 0)
+          {
+            link.x = canvas.width;
+          }
           link.currentFrame = (link.currentFrame + 1) % totalFrames;
           break;
         case "KeyD":
@@ -115,6 +126,10 @@ addEventListener("keydown", (event) => {
           // Handle "right"
           link.currentFrameIndex = link.rightKeyY;
           link.x += link.speed;
+          if (link.x + spriteWidth > canvas.width)
+          {
+            link.x = 0;
+          }
           link.currentFrame = (link.currentFrame + 1) % totalFrames;
           break;
     }
@@ -150,32 +165,42 @@ function renderStrawberry()
     ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
 }
 
-var snakeFrame = 1;
-let spriteX = 0;
-function updateSnakePosition() {
-  // Clear the canvas
-//   ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  // Calculate the position of the current frame on the sprite sheet
-  const frameX = snakeFrame * snake.x;
-  const frameY = 0;
-
-  // Update the sprite's position based on speed and direction
-  spriteX += speed * direction;
-
-  // Draw the current frame onto the canvas at the updated position
-  ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
-
-  // Increment the frame index
-  currentFrame = (currentFrame + 1) % totalFrames;
-
-  // Call the updateFrame function recursively to animate the sprite
-  requestAnimationFrame(updateSnakePosition);
+function renderSnake()
+{
+    snake.x = getRandomInt(canvasHeight - 10);
+    snake.y = getRandomInt(canvasHeight - 10);
+    console.log('rendering snake...');
+    ctx.drawImage(fresaSpriteSheet, snake.x, snake.y);
 }
+
+// var snakeFrame = 1;
+// let spriteX = 0;
+// const speed = 5;
+// const direction = 1;
+// function updateSnakePosition() {
+//   // Clear the canvas
+
+//   // Calculate the position of the current frame on the sprite sheet
+//   const frameX = snakeFrame * snake.x;
+//   const frameY = snake.y;
+
+//   // Update the sprite's position based on speed and direction
+//   spriteX += speed * direction;
+
+//   // Draw the current frame onto the canvas at the updated position
+//   ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
+
+//   // Increment the frame index
+//   currentFrame = (currentFrame + 1) % totalFrames;
+
+//   // Call the updateFrame function recursively to animate the sprite
+// //   requestAnimationFrame(updateSnakePosition);
+// }
 
 var main = function () {  
     var now = Date.now();
     render();
+   // updateSnakePosition();
     then = now;
     requestAnimationFrame(main);
 
@@ -202,7 +227,8 @@ var render = function () {
 
     if (snakeRedy)
     {
-        updateSnakePosition();
+        console.log("snake");
+        // ctx.drawImage(snakeSpriteSheet, frameX, frameY, snake.width, snake.height, spriteX, snake.y, snake.width, snake.height);
     }
 }
 
