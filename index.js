@@ -1,179 +1,168 @@
-// Create the canvas
+// create a new canvas
 var canvas = document.createElement("canvas");
 var ctx = canvas.getContext("2d");
-canvas.width = 512;
-canvas.height = 480;
+canvas.width = 1000;
+canvas.height = 1000;
 document.body.appendChild(canvas);
 
-// load images ========================================================
-// Background image
-var bgReady = false;
-var bgImage = new Image();
-bgImage.onload = function () {
-    bgReady = true;
+// render background image
+var bckgrdReady = false;
+var bckgrdImage = new Image();
+bckgrdImage.onload = function () {
+    bckgrdReady = true;
 };
-bgImage.src = "images/background.png";
+bckgrdImage.src = "images/grass_background.png";
 
-// Hero image
-var heroReady = false;
-var heroImage = new Image();
-heroImage.onload = function () {
-    heroReady = true;
+// render main characters
+var linkReady = false;
+var linkSpriteSheet = new Image();
+linkSpriteSheet.onload = function () {
+    linkReady = true;
 };
-heroImage.src = "images/hero.png";
+linkSpriteSheet.src = "images/link.png";
 
-// Monster image
-var monsterReady = false;
-var monsterImage = new Image();
-monsterImage.onload = function () {
-    monsterReady = true;
+// render strawberries
+var fresaRedy = false;
+var fresaSpriteSheet = new Image();
+fresaSpriteSheet.onload = function () {
+    fresaRedy = true;
 };
-monsterImage.src = "images/monster.png";
+fresaSpriteSheet.src = "images/fresa.png";
 
-// done with load images ========================================================
+// initialization
+const spriteWidth = 96; // sprite width
+const spriteHeight = 100; // sprite height
 
+var link = {
+    speed: 30,
+    x: 100, // sprite on the canvas
+    y: 100, // sprite index
+    height: spriteHeight,
+    width: spriteWidth,
+    initialX: 7, // initial x position in sprite sheet
+    downkeyY: 419,
+    upKeyY:626,
+    leftKeyY: 530,
+    rightKeyY: 736,
+    currentFrameIndex: 420,
+    currentFrame: 1
+}
 
-// define objects and variables we need =========================================
-
-// Game objects
-var hero = {
-    speed: 100, // movement in pixels per second
-    x: 0,  // where on the canvas are they?
-    y: 0  // where on the canvas are they?
+var strawberry = {
+    // for this version, the monster does not move, so just and x and y
+    x: getRandomInt(1000),
+    y: getRandomInt(1000)
 };
-var monster = {
-// for this version, the monster does not move, so just and x and y
-    x: 0,
-    y: 0
-};
-var monstersCaught = 0;
 
-// end define objects and variables we need =========================================
+var numberOfStrawberry = 0;
 
-// keyboard control =============================================
-// Handle keyboard controls
-var keysDown = {}; //object were we properties when keys go down
-                // and then delete them when the key goes up
-// so the object tells us if any key is down when that keycode
-// is down.  In our game loop, we will move the hero image if when
-// we go thru render, a key is down
+// Define the speed of the animation (in milliseconds)
+const animationSpeed = 100;
+// keyboard events
+// Define the number of frames and the current frame index
+const totalFrames = 10;
+let currentFrame = 1;
 
-addEventListener("keydown", function (e) {
-    
-    keysDown[e.keyCode] = true;
-}, false);
-
-addEventListener("keyup", function (e) {
-   
-    delete keysDown[e.keyCode];
-}, false);
-
-// end keyboard control =============================================
-
-
-
-
-
-
-// define functions ==============================================
-
-
-
-// Update game objects
-var update = function (modifier) {
-   
-   //  adjust based on keys
-    if (38 in keysDown && hero.y > 32 + 0) { //  holding up key
-    hero.y -= hero.speed * modifier;
-    }
-    if (40 in keysDown && hero.y < canvas.height - (64 + 0)) { //  holding down key
-        hero.y += hero.speed * modifier;
-    }
-    if (37 in keysDown && hero.x > (32 + 0)) { // holding left key
-        hero.x -= hero.speed * modifier;
-    }
-    if (39 in keysDown && hero.x < canvas.width - (64 + 0)) { // holding right key
-        hero.x += hero.speed * modifier;
+addEventListener("keydown", (event) => {
+    if (event.defaultPrevented)
+    {
+        return; // do nothing
     }
 
+    switch (event.code) {
+        case "KeyS":
+        case "ArrowDown":
+          // Handle "down"
+          link.currentFrameIndex = link.downkeyY;
+          link.y += link.speed;
+          link.currentFrame = (link.currentFrame + 1) % totalFrames;
+          break;
+        case "KeyW":
+        case "ArrowUp":
+          // Handle "up"
+          link.currentFrameIndex = link.upKeyY;
+          link.y -= link.speed;
+          link.currentFrame = (link.currentFrame + 1) % totalFrames;
+          break;
+        case "KeyA":
+        case "ArrowLeft":
+          // Handle "left"
+          link.currentFrameIndex = link.leftKeyY;
+          link.x -= link.speed;
+          link.currentFrame = (link.currentFrame + 1) % totalFrames;
+          break;
+        case "KeyD":
+        case "ArrowRight":
+          // Handle "right"
+          link.currentFrameIndex = link.rightKeyY;
+          link.x += link.speed;
+          link.currentFrame = (link.currentFrame + 1) % totalFrames;
+          break;
+    }
 
-
-
-    // Are they touching?
+    var right = link.x + spriteWidth;
+    var down = link.y + spriteHeight;
+    console.log("right: " + right + "fresa x: " + strawberry.x + "down: " + down + "fresa y:" + strawberry.y)
     if (
-        hero.x <= (monster.x + 32)
-        && monster.x <= (hero.x + 32)
-        && hero.y <= (monster.y + 32)
-        && monster.y <= (hero.y + 32)
+        (link.x >= (strawberry.x)
+        && (link.y >= (strawberry.y)
+        && link.x <= strawberry.x && link.y <= strawberry.y
     ) {
-        ++monstersCaught;       // keep track of our “score”
-        reset();       // start a new cycle
+        ++numberOfStrawberry;       // keep number of strawberries
+        renderStrawberry();       // start a new cycle
     }
-        
-};
+    updateLinkPosition();
+});
 
+// Update the animation frame
+function updateLinkPosition() {
+    const frameX = link.currentFrame * spriteWidth;
+    const frameY = link.currentFrameIndex;
+  
+    // Draw the current frame onto the canvas at the updated position
+    ctx.drawImage(linkSpriteSheet, frameX, frameY, link.width, link.height, link.x, link.y, link.width, link.height);
+}
 
+function renderStrawberry()
+{
+    strawberry.x = getRandomInt(1000);
+    strawberry.y = getRandomInt(1000);
+    console.log('rendering strawberry...');
+    ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
+}
 
-// Draw everything in the main render function
-var render = function () {
-    if (bgReady) {
- 
-        ctx.drawImage(bgImage, 0, 0);
-    }
-    if (heroReady) {
-        ctx.drawImage(heroImage, hero.x, hero.y);
-    }
+var main = function () {  
+    var now = Date.now();
+    render();
+    then = now;
+    requestAnimationFrame(main);
 
-    if (monsterReady) {
-        ctx.drawImage(monsterImage, monster.x, monster.y);
-    }
-
-    
     // Score
     ctx.fillStyle = "rgb(250, 250, 250)";
     ctx.font = "24px Helvetica";
     ctx.textAlign = "left";
     ctx.textBaseline = "top";
-    ctx.fillText("Goblins caught: " + monstersCaught, 32, 32);
+    ctx.fillText("Strawberry count: " + numberOfStrawberry, 32, 32);
+};
 
+var render = function () {
+    if (bckgrdReady) {
+        ctx.drawImage(bckgrdImage, 0, 0);
+    }
+    if (linkReady)
+    {
+        updateLinkPosition();
+    }
+    if (fresaRedy)
+    {
+        ctx.drawImage(fresaSpriteSheet, strawberry.x, strawberry.y);
+    }
 }
 
+function getRandomInt(max) {
+    return Math.floor(Math.random() * max);
+}
 
-
-// The main game loop
-var main = function () {
-    var now = Date.now();
-    var delta = now - then;
-    update(delta / 1000);
-    render();
-    then = now;
-    //  Request to do this again ASAP
-    requestAnimationFrame(main);
-};
-
-
-
-// Reset the game when the player catches a monster
-var reset = function () {
-    hero.x = (canvas.width / 2) -16;
-    hero.y = (canvas.height / 2) -16;
-
-    //Place the monster somewhere on the screen randomly
-    // but not in the hedges, Article in wrong, the 64 needs to be 
-    //  hedge 32 + hedge 32 + char 32 = 96
-    monster.x = 32 + (Math.random() * (canvas.width - 96));
-    monster.y = 32 + (Math.random() * (canvas.height - 96));
-};
-
-
-// end of define functions ==============================================
-
-
-
-
-// Let's play this game!  ===============
 var then = Date.now();
-reset();
+//reset();
 main();  // call the main game loop.
-
-
